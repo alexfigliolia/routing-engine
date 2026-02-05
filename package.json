@@ -1,0 +1,29 @@
+{
+  "name": "routing-engine",
+  "version": "1.0.0",
+  "description": "A UI routing engine for web frameworks",
+  "keywords": [
+    "javascript",
+    "router",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "Alex Figliolia",
+  "main": "src/index.ts",
+  "scripts": {
+    "lint": "yarn oxlint --type-aware --type-check --report-unused-disable-directives --fix && yarn oxfmt",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@figliolia/data-structures": "^1.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.0",
+    "oxfmt": "^0.28.0",
+    "oxlint": "^1.43.0",
+    "oxlint-tsgolint": "^0.11.4",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}
