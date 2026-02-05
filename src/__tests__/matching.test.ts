@@ -41,47 +41,49 @@ describe("Route Matching", () => {
   });
 
   test("It can match routes", async () => {
-    expect(await Hierarchy.match("home")).toHaveLength(1);
-    expect(await Hierarchy.match("about")).toHaveLength(1);
-    expect(await Hierarchy.match("app")).toHaveLength(1);
+    expect(await Hierarchy.matchPath("home")).toHaveLength(1);
+    expect(await Hierarchy.matchPath("about")).toHaveLength(1);
+    expect(await Hierarchy.matchPath("app")).toHaveLength(1);
   });
 
   test("It can match child routes", async () => {
-    const matches = await Hierarchy.match("about/info");
+    const matches = await Hierarchy.matchPath("about/info");
     expect(matches?.length).toEqual(2);
   });
 
   test("It can match child routes with dynamic segments", async () => {
-    const matches = await Hierarchy.match("app/4");
+    const matches = await Hierarchy.matchPath("app/4");
     expect(matches?.length).toEqual(2);
   });
 
   test("It can match asynchronously loaded child routes", async () => {
-    const matches1 = await Hierarchy.match("app/4/app-child-1");
+    const matches1 = await Hierarchy.matchPath("app/4/app-child-1");
     expect(matches1?.length).toEqual(3);
-    const matches2 = await Hierarchy.match(
+    const matches2 = await Hierarchy.matchPath(
       "app/app-child-2/nested/path/nested-promise",
     );
     expect(matches2?.length).toEqual(4);
-    expect(matches2?.at(-1)?.config.path).toEqual("nested-promise");
+    expect(matches2?.at(-1)?.route?.config.path).toEqual("nested-promise");
   });
 
   test("It can redirect", async () => {
-    const matches = await Hierarchy.match("nowhere");
-    expect(matches?.at(-1)?.config?.path).toEqual("home");
+    const matches = await Hierarchy.matchPath("nowhere");
+    expect(matches?.at(-1)?.route?.config?.path).toEqual("home");
   });
 
   test("It can redirect to the deepest matched redirect", async () => {
-    const matches1 = await Hierarchy.match("app/4/app-child-2");
-    expect(matches1?.at(-1)?.config?.path).toEqual(":id");
-    const matches2 = await Hierarchy.match("app/app-child-2/nested/path/whiff");
-    expect(matches2?.at(-1)?.config?.path).toEqual("nested/path");
+    const matches1 = await Hierarchy.matchPath("app/4/app-child-2");
+    expect(matches1?.at(-1)?.route?.config?.path).toEqual(":id");
+    const matches2 = await Hierarchy.matchPath(
+      "app/app-child-2/nested/path/whiff",
+    );
+    expect(matches2?.at(-1)?.route?.config?.path).toEqual("nested/path");
   });
 
   test("It can support relative redirects", async () => {
-    const matches1 = await Hierarchy.match("about/info/blah");
-    expect(matches1?.at(-1)?.config.path).toEqual("info");
-    const matches2 = await Hierarchy.match("about/blah");
-    expect(matches2?.at(-1)?.config.path).toEqual("about");
+    const matches1 = await Hierarchy.matchPath("about/info/blah");
+    expect(matches1?.at(-1)?.route?.config.path).toEqual("info");
+    const matches2 = await Hierarchy.matchPath("about/blah");
+    expect(matches2?.at(-1)?.route?.config.path).toEqual("about");
   });
 });

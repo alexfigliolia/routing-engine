@@ -67,12 +67,12 @@ const nodes = await Hierarchy.match("/path/in/my/app");
 let current = nodes.shift();
 
 // replace the child at the root of the router
-routerOutlet.replaceChildren(current);
+routerOutlet.replaceChildren(current.route.compoennt);
 
 // append each matched route node's UI into the
 // node that came before it
 nodes.forEach(node => {
-  current.component.appendChild(node.component);
+  current.component.appendChild(node.route.component);
   current = node;
 });
 

@@ -21,7 +21,7 @@ class LoaderTracker {
   }
 }
 
-describe("Route Matching", () => {
+describe("Route Component Preloading", () => {
   beforeAll(() => {
     Hierarchy.define([
       new Route({ path: "preload-1", loader: LoaderTracker.load }),

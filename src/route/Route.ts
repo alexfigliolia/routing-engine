@@ -1,11 +1,11 @@
-import type { IndexableRoute, IRoute } from "./types";
+import type { IndexableRoute, IRoute, ResolvedRouteData } from "./types";
+import { AccessControlRedirect } from "./AccessControlRedirect";
 
 export class Route<
   T,
-  P extends (() => any)[] = (() => any)[],
-  A extends (() => Promise<boolean> | boolean)[] = (() =>
-    | Promise<boolean>
-    | boolean)[],
+  P extends readonly (() => any)[] = readonly (() => any)[],
+  A extends readonly (() => Promise<true | string> | true | string)[] =
+    readonly (() => Promise<true | string> | true | string)[],
   C extends IndexableRoute[] = IndexableRoute[],
 > {
   constructor(readonly config: IRoute<T, P, A, C>) {
@@ -35,6 +35,15 @@ export class Route<
     return this.config.children ?? ([] as unknown as C);
   }
 
+  public async resolve() {
+    await this.runAccessControls();
+    const [data, ui] = await Promise.all([
+      this.runResolvers(),
+      (this.config.component ?? this.config.loader?.())!,
+    ]);
+    return { data, ui, route: this };
+  }
+
   public toJSON() {
     return this.config;
   }
@@ -58,4 +67,36 @@ export class Route<
     }
     await Promise.all(promises);
   }
+
+  private async runAccessControls() {
+    if (this.config.accessControls) {
+      const accessors = this.config.accessControls.map(fn => fn());
+      const resolutions = await Promise.all(accessors);
+      for (const resolution of resolutions) {
+        if (typeof resolution === "string") {
+          throw new AccessControlRedirect(resolution);
+        }
+      }
+    }
+  }
+
+  private async runResolvers() {
+    if (this.config.parallelized) {
+      return Promise.all(
+        this.config.parallelized.map?.(loader => loader()),
+      ) as Promise<ResolvedRouteData<P>>;
+    }
+    return [] as ResolvedRouteData<P>;
+  }
 }
+
+// const myRoute = new Route({
+//   path: "my-path",
+//   loader: async () => "<div />",
+//   parallelized: [
+//     async () => ({ data: true }),
+//     async () => ({ moreData: 3 }),
+//   ] as const,
+// });
+
+// const { data, ui } = await myRoute.resolve();

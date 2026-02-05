@@ -1,12 +1,13 @@
 import { LinkedList } from "@figliolia/data-structures";
 
-import type { ExtendableRoute } from "../route";
 import {
   Redirect,
   Route,
   RouteIntermediary,
   type IndexableRoute,
+  type ExtendableRoute,
 } from "../route";
+import { AccessControlRedirect } from "../route";
 
 import { Tree } from "./Tree";
 
@@ -54,7 +55,58 @@ export class Hierarchy {
     }
   }
 
-  public static async match(
+  public static async matchPath(path: string | string[]): Promise<
+    | {
+        data: readonly any[];
+        ui: any;
+        route: ExtendableRoute;
+      }[]
+    | undefined
+  > {
+    return this.operateOnMatches(path, matches => {
+      if (!matches.length) {
+        return;
+      }
+      try {
+        return Promise.all(matches.map(route => route.resolve()));
+      } catch (error: unknown) {
+        if (error instanceof AccessControlRedirect) {
+          return this.matchPath(error.path);
+        }
+        throw error;
+      }
+    });
+  }
+
+  public static async preloadPath(path: string | string[], depth: number = 0) {
+    return this.operateOnMatches(path, matches =>
+      Promise.all(
+        matches.map((route, i) =>
+          route.cacheRouteCode(i === matches.length - 1 ? depth : 0),
+        ),
+      ),
+    );
+  }
+
+  public static async prefetchData(path: string | string[], depth: number = 0) {
+    return this.operateOnMatches(path, matches =>
+      Promise.all(
+        matches.map((route, i) =>
+          route.cacheRouteLoaders(i === matches.length - 1 ? depth : 0),
+        ),
+      ),
+    );
+  }
+
+  private static async operateOnMatches<T>(
+    path: string | string[],
+    operation: (routes: ExtendableRoute[]) => T,
+  ) {
+    const matches = await this.match(path);
+    return operation(matches ?? []);
+  }
+
+  private static async match(
     path: string | string[],
   ): Promise<ExtendableRoute[] | undefined> {
     const redirects: Redirect[] = [];
@@ -85,34 +137,6 @@ export class Hierarchy {
       current = next;
     }
     return matches;
-  }
-
-  public static async preloadPath(path: string | string[], depth: number = 0) {
-    return this.operateOnMatches(path, matches =>
-      Promise.all(
-        matches.map((route, i) =>
-          route.cacheRouteCode(i === matches.length - 1 ? depth : 0),
-        ),
-      ),
-    );
-  }
-
-  public static async prefetchData(path: string | string[], depth: number = 0) {
-    return this.operateOnMatches(path, matches =>
-      Promise.all(
-        matches.map((route, i) =>
-          route.cacheRouteLoaders(i === matches.length - 1 ? depth : 0),
-        ),
-      ),
-    );
-  }
-
-  private static async operateOnMatches<T>(
-    path: string | string[],
-    operation: (routes: ExtendableRoute[]) => T,
-  ) {
-    const matches = await this.match(path);
-    return operation(matches ?? []);
   }
 
   private static toPath(path: string[]) {

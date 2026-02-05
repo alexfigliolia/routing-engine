@@ -1,7 +1,7 @@
 {
   "name": "routing-engine",
   "version": "1.0.0",
-  "description": "A UI routing engine for web frameworks",
+  "description": "A routing engine for web frameworks",
   "keywords": [
     "javascript",
     "router",

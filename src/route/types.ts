@@ -4,18 +4,17 @@ import type { Redirect } from "./Redirect";
 
 export interface IRoute<
   T,
-  P extends (() => any)[] = (() => any)[],
-  A extends (() => Promise<boolean> | boolean)[] = (() =>
-    | Promise<boolean>
-    | boolean)[],
+  P extends readonly (() => any)[] = readonly (() => any)[],
+  A extends readonly (() => Promise<true | string> | true | string)[] =
+    readonly (() => Promise<true | string> | true | string)[],
   C extends IndexableRoute[] = IndexableRoute[],
 > {
-  path: string;
-  component?: T;
-  loader?: () => Promise<T>;
-  parallelized?: P;
-  accessControls?: A;
-  children?: C | (() => Promise<C>);
+  readonly path: string;
+  readonly component?: T;
+  readonly loader?: () => Promise<T>;
+  readonly parallelized?: P;
+  readonly accessControls?: A;
+  readonly children?: C | (() => Promise<C>);
 }
 
 export interface IRouteIntermediary {
@@ -29,3 +28,7 @@ export type IndexableRoute = ExtendableRoute | Redirect;
 export type RouteNode = ExtendableRoute | RouteIntermediary;
 
 export type TreeNode = IndexableRoute | RouteIntermediary;
+
+export type ResolvedRouteData<T extends readonly (() => any)[]> = {
+  [I in keyof T]: Awaited<ReturnType<T[I]>>;
+};
