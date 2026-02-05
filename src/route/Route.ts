@@ -49,23 +49,17 @@ export class Route<
   }
 
   private async asyncDFS<T>(maxDepth = 0, onNode: (route: Route<any>) => T) {
-    const promises: (Promise<any> | undefined)[] = [];
     onNode(this);
     if (maxDepth > 0) {
-      promises.push(
-        new Promise<void>(resolve => {
-          void this.loadChildren().then(children => {
-            for (const child of children) {
-              if (child instanceof Route) {
-                promises.push(child.asyncDFS(maxDepth - 1, onNode));
-              }
-            }
-            resolve();
-          });
-        }),
-      );
+      const promises: (Promise<any> | undefined)[] = [];
+      const children = await this.loadChildren();
+      for (const child of children) {
+        if (child instanceof Route) {
+          promises.push(child.asyncDFS(maxDepth - 1, onNode));
+        }
+      }
+      await Promise.all(promises);
     }
-    await Promise.all(promises);
   }
 
   private async runAccessControls() {

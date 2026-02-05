@@ -101,3 +101,5 @@ const MyRoute = new Route({
 // Register the route and its children
 Hierarchy.define([MyRoute]);
 ```
+
+`accessControls` when present resolve ahead of any ui code or data. If an access control function returns a path string, it's automatically redirected to.
