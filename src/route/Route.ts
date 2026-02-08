@@ -49,7 +49,7 @@ export class Route<
   }
 
   private async asyncDFS<T>(maxDepth = 0, onNode: (route: Route<any>) => T) {
-    onNode(this);
+    const results: T[] = [onNode(this)];
     if (maxDepth > 0) {
       const promises: (Promise<any> | undefined)[] = [];
       const children = await this.loadChildren();
@@ -58,8 +58,9 @@ export class Route<
           promises.push(child.asyncDFS(maxDepth - 1, onNode));
         }
       }
-      await Promise.all(promises);
+      results.push(...(await Promise.all(promises)));
     }
+    return results;
   }
 
   private async runAccessControls() {
@@ -83,14 +84,3 @@ export class Route<
     return [] as ResolvedRouteData<P>;
   }
 }
-
-// const myRoute = new Route({
-//   path: "my-path",
-//   loader: async () => "<div />",
-//   parallelized: [
-//     async () => ({ data: true }),
-//     async () => ({ moreData: 3 }),
-//   ] as const,
-// });
-
-// const { data, ui } = await myRoute.resolve();

@@ -1,5 +1,6 @@
 import { LinkedList } from "@figliolia/data-structures";
 
+import { AccessControlRedirect } from "../route";
 import {
   Redirect,
   Route,
@@ -7,7 +8,6 @@ import {
   type IndexableRoute,
   type ExtendableRoute,
 } from "../route";
-import { AccessControlRedirect } from "../route";
 
 import { Tree } from "./Tree";
 
